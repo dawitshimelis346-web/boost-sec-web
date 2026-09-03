@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoostSec — Security Advice, Support & Firewall Engineering</title>
+<link rel="icon" type="image/png" href="boostsec-profile.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0A1420;
+    --navy:#101E30;
+    --slate:#16283F;
+    --line:#25384F;
+    --paper:#EDEFF3;
+    --paper-dim:#B7C2D0;
+    --amber:#E8A33D;
+    --amber-dim:#8A6528;
+    --green:#5FBF8F;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--navy-deep);
+    color:var(--paper);
+    font-family:'Space Grotesk', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--amber);color:var(--navy-deep);}
+  a{color:inherit;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+
+  .wrap{
+    max-width:1120px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--amber);
+    outline-offset:3px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(10,20,32,0.86);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 0;
+  }
+  .brand{
+    display:flex; align-items:baseline; gap:8px;
+    font-weight:700; font-size:1.15rem; letter-spacing:-0.01em;
+    text-decoration:none;
+  }
+  .brand .dot{color:var(--amber);}
+  .navlinks{display:flex; gap:28px; font-size:0.95rem;}
+  .navlinks a{text-decoration:none; color:var(--paper-dim); transition:color .15s;}
+  .navlinks a:hover{color:var(--paper);}
+  .nav-cta{
+    background:var(--amber); color:var(--navy-deep); font-weight:600;
+    padding:9px 18px; border-radius:var(--radius); text-decoration:none;
+    font-size:0.9rem; white-space:nowrap;
+  }
+  .nav-cta:hover{background:#f0ae52;}
+  .navlinks-mobile-hide{display:flex;}
+  @media (max-width:720px){
+    .navlinks-mobile-hide{display:none;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:96px 0 80px;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .hero .wrap{
+    display:grid;
+    grid-template-columns:1.15fr 0.85fr;
+    gap:56px;
+    align-items:center;
+  }
+  @media (max-width:880px){
+    .hero .wrap{grid-template-columns:1fr;}
+  }
+  .kicker{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.82rem;
+    color:var(--green);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .kicker .pulse{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 0 0 rgba(95,191,143,0.7);
+    animation:pulse 2.4s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(95,191,143,0.55);}
+    70%{box-shadow:0 0 0 9px rgba(95,191,143,0);}
+    100%{box-shadow:0 0 0 0 rgba(95,191,143,0);}
+  }
+  h1{
+    font-size:clamp(2.3rem, 4.6vw, 3.6rem);
+    line-height:1.06;
+    letter-spacing:-0.015em;
+    margin:0 0 22px;
+    font-weight:700;
+    max-width:16ch;
+  }
+  .hero p.lede{
+    font-size:1.08rem;
+    color:var(--paper-dim);
+    max-width:46ch;
+    margin:0 0 34px;
+  }
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--amber); color:var(--navy-deep);
+    padding:13px 24px; border-radius:var(--radius);
+    text-decoration:none; font-weight:600; font-size:0.96rem;
+    border:1px solid var(--amber);
+  }
+  .btn-primary:hover{background:#f0ae52;}
+  .btn-secondary{
+    padding:13px 24px; border-radius:var(--radius);
+    text-decoration:none; font-weight:600; font-size:0.96rem;
+    border:1px solid var(--line); color:var(--paper);
+  }
+  .btn-secondary:hover{border-color:var(--paper-dim);}
+
+  /* terminal panel */
+  .term{
+    background:var(--navy);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+  .term-bar{
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.75rem;
+    color:var(--paper-dim);
+  }
+  .term-bar .tdot{width:8px; height:8px; border-radius:50%; background:var(--line);}
+  .term-body{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.82rem;
+    padding:18px 16px;
+    color:var(--paper-dim);
+    min-height:220px;
+  }
+  .term-body .line{margin:0 0 9px; white-space:pre-wrap;}
+  .term-body .ok{color:var(--green);}
+  .term-body .warn{color:var(--amber);}
+  .term-body .caret{
+    display:inline-block; width:7px; height:14px; background:var(--amber);
+    animation:blink 1s steps(1) infinite; vertical-align:-2px;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:84px 0; border-bottom:1px solid var(--line);}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.78rem;
+    color:var(--amber-dim);
+    margin:0 0 12px;
+  }
+  h2{
+    font-size:clamp(1.6rem, 3vw, 2.1rem);
+    letter-spacing:-0.01em;
+    margin:0 0 16px;
+    max-width:20ch;
+  }
+  .section-lede{color:var(--paper-dim); max-width:56ch; font-size:1.02rem; margin-bottom:48px;}
+
+  /* ---------- SERVICES ---------- */
+  .services{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  @media (max-width:880px){
+    .services{grid-template-columns:1fr;}
+  }
+  .service{
+    background:var(--navy-deep);
+    padding:34px 30px;
+  }
+  .service .idx{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--amber);
+    font-size:0.85rem;
+    margin-bottom:18px;
+  }
+  .service h3{font-size:1.2rem; margin:0 0 12px; letter-spacing:-0.005em;}
+  .service p{color:var(--paper-dim); font-size:0.95rem; margin:0;}
+
+  /* ---------- FLOW (request pipeline) ---------- */
+  .flow{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:0;
+    position:relative;
+  }
+  @media (max-width:880px){
+    .flow{grid-template-columns:1fr; gap:26px;}
+  }
+  .flow-step{
+    padding:0 22px 0 0;
+    position:relative;
+  }
+  .flow-step:not(:last-child)::after{
+    content:"";
+    position:absolute;
+    top:11px; right:0;
+    width:22px; height:1px;
+    background:var(--line);
+  }
+  @media (max-width:880px){
+    .flow-step:not(:last-child)::after{display:none;}
+  }
+  .flow-step .num{
+    width:22px; height:22px;
+    border:1px solid var(--amber-dim);
+    color:var(--amber);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.72rem;
+    margin-bottom:16px;
+  }
+  .flow-step h4{margin:0 0 8px; font-size:1.02rem;}
+  .flow-step p{margin:0; color:var(--paper-dim); font-size:0.9rem; max-width:26ch;}
+
+  /* ---------- WHY / STATS ---------- */
+  .why-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:56px;
+    align-items:start;
+  }
+  @media (max-width:880px){
+    .why-grid{grid-template-columns:1fr;}
+  }
+  .why-list{list-style:none; margin:0; padding:0;}
+  .why-list li{
+    display:flex; gap:16px;
+    padding:20px 0;
+    border-top:1px solid var(--line);
+  }
+  .why-list li:last-child{border-bottom:1px solid var(--line);}
+  .why-list .mark{color:var(--green); font-family:'IBM Plex Mono', monospace; padding-top:2px;}
+  .why-list h4{margin:0 0 6px; font-size:1rem;}
+  .why-list p{margin:0; color:var(--paper-dim); font-size:0.9rem;}
+
+  .stat-card{
+    background:var(--navy); border:1px solid var(--line);
+    padding:28px;
+    margin-bottom:1px;
+  }
+  .stat-card .num{
+    font-size:2.2rem; font-weight:700; color:var(--amber);
+    letter-spacing:-0.02em;
+  }
+  .stat-card .label{color:var(--paper-dim); font-size:0.88rem; margin-top:6px;}
+
+  /* ---------- REQUEST FORM ---------- */
+  .request{
+    background:var(--navy);
+  }
+  .request-grid{
+    display:grid;
+    grid-template-columns:0.9fr 1.1fr;
+    gap:56px;
+  }
+  @media (max-width:880px){
+    .request-grid{grid-template-columns:1fr;}
+  }
+  form{
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .field{display:flex; flex-direction:column; gap:7px;}
+  label{font-size:0.85rem; color:var(--paper-dim);}
+  input, select, textarea{
+    background:var(--navy-deep);
+    border:1px solid var(--line);
+    color:var(--paper);
+    padding:12px 14px;
+    border-radius:var(--radius);
+    font-family:'Space Grotesk', sans-serif;
+    font-size:0.95rem;
+  }
+  textarea{resize:vertical; min-height:100px;}
+  input::placeholder, textarea::placeholder{color:#5a6b81;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:520px){.field-row{grid-template-columns:1fr;}}
+  .submit-btn{
+    background:var(--amber); color:var(--navy-deep);
+    border:none; padding:14px 24px; border-radius:var(--radius);
+    font-weight:600; font-size:0.98rem; cursor:pointer;
+    font-family:'Space Grotesk', sans-serif;
+    margin-top:6px;
+  }
+  .submit-btn:hover{background:#f0ae52;}
+  .form-note{font-size:0.8rem; color:#5a6b81; margin-top:2px;}
+  .confirm{
+    display:none;
+    border:1px solid var(--green);
+    padding:16px 18px;
+    color:var(--green);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.85rem;
+    margin-top:6px;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:44px 0; border-bottom:none;}
+  .footer-row{
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:16px;
+    color:var(--paper-dim); font-size:0.85rem;
+  }
+  .footer-row a{text-decoration:none; color:var(--paper-dim);}
+  .footer-row a:hover{color:var(--paper);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a href="#" class="brand"><img class="brand-logo" src="boostsec-profile.png" alt="BoostSec profile logo">BoostSec<span class="dot">.</span></a>
+      <div class="navlinks navlinks-mobile-hide">
+        <a href="#services">Services</a>
+        <a href="#process">Process</a>
+        <a href="#why">Why us</a>
+        <a href="#request">Contact</a>
+      </div>
+      <a href="#request" class="nav-cta">Send a request</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="kicker"><span class="pulse"></span>MONITORING · ADVISORY · FIREWALL ENGINEERING</div>
+      <h1>Security advice and support you can actually act on.</h1>
+      <p class="lede">BoostSec helps businesses find their security gaps, close them, and build firewalls that hold. Every engagement starts the same way: you send us a request, a specialist looks at it, and you get a straight answer.</p>
+      <div class="hero-ctas">
+        <a href="#request" class="btn-primary">Send a security request</a>
+        <a href="#services" class="btn-secondary">See what we do</a>
+      </div>
+    </div>
+    <div class="term">
+      <div class="term-bar">
+        <span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>
+        <span style="margin-left:6px;">boostsec-console</span>
+      </div>
+      <div class="term-body" id="termBody"></div>
+    </div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="wrap">
+    <p class="eyebrow">SERVICES</p>
+    <h2>Three ways we keep your systems safe</h2>
+    <p class="section-lede">Whether you need a second opinion, hands-on help during an incident, or a firewall built from the ground up, it starts with the same request form below.</p>
+  </div>
+  <div class="wrap" style="padding:0 32px 0;">
+    <div class="services">
+      <div class="service">
+        <div class="idx">01</div>
+        <h3>Security advice</h3>
+        <p>Send us your setup and we'll tell you where the risk actually sits — no generic checklists, just an assessment specific to what you've built and what you're trying to protect.</p>
+      </div>
+      <div class="service">
+        <div class="idx">02</div>
+        <h3>Security support</h3>
+        <p>When something's wrong and you need hands on the problem, our team responds to your request and works the issue with you until it's resolved.</p>
+      </div>
+      <div class="service">
+        <div class="idx">03</div>
+        <h3>Firewall building</h3>
+        <p>We design and configure firewalls around your actual traffic and threat model, so the rules you ship match the risks you have — not a generic template.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="process">
+  <div class="wrap">
+    <p class="eyebrow">HOW IT WORKS</p>
+    <h2>One request, a clear path to a fix</h2>
+    <p class="section-lede">Advice and support both run through the same request process, so you always know what happens after you hit send.</p>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="num">1</div>
+        <h4>You send a request</h4>
+        <p>Tell us whether you need advice or support, and describe what's going on.</p>
+      </div>
+      <div class="flow-step">
+        <div class="num">2</div>
+        <h4>We review it</h4>
+        <p>A specialist looks at your systems and the specifics of your request.</p>
+      </div>
+      <div class="flow-step">
+        <div class="num">3</div>
+        <h4>You get a plan</h4>
+        <p>Concrete recommendations or a support plan, matched to your setup.</p>
+      </div>
+      <div class="flow-step">
+        <div class="num">4</div>
+        <h4>We follow through</h4>
+        <p>From advice to firewall configuration, we stay on it until it's resolved.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <p class="eyebrow">WHY BOOSTSEC</p>
+    <h2>Built around one request at a time</h2>
+    <div class="why-grid">
+      <ul class="why-list">
+        <li>
+          <span class="mark">›</span>
+          <div>
+            <h4>Advice specific to your systems</h4>
+            <p>We look at what you actually run before we recommend anything.</p>
+          </div>
+        </li>
+        <li>
+          <span class="mark">›</span>
+          <div>
+            <h4>Support that stays engaged</h4>
+            <p>Your request goes to a specialist who follows it through to resolution.</p>
+          </div>
+        </li>
+        <li>
+          <span class="mark">›</span>
+          <div>
+            <h4>Firewalls built for your traffic</h4>
+            <p>Rules are configured around your real risk, not a generic template.</p>
+          </div>
+        </li>
+      </ul>
+      <div>
+        <div class="stat-card">
+          <div class="num">&lt; 24h</div>
+          <div class="label">Typical first response on a new request</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">1 form</div>
+          <div class="label">One request path for advice, support, and firewall work</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">100%</div>
+          <div class="label">Requests reviewed by a specialist, not a script</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="request" class="request">
+  <div class="wrap">
+    <p class="eyebrow">GET STARTED</p>
+    <h2>Send a security request</h2>
+    <div class="request-grid">
+      <div>
+        <p class="section-lede" style="margin-bottom:20px;">Every engagement with BoostSec starts here. Tell us what you need — advice, support, or a firewall build — and a specialist will get back to you.</p>
+        <p class="section-lede" style="margin-bottom:0;">If it's an active incident, say so in the details field and mark the request as urgent.</p>
+      </div>
+      <form id="requestForm">
+        <div class="field-row">
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" type="text" placeholder="Your name" required>
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="you@company.com" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="type">Request type</label>
+          <select id="type" required>
+            <option value="">Select one</option>
+            <option>Security advice</option>
+            <option>Security support</option>
+            <option>Firewall building</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="details">Details</label>
+          <textarea id="details" placeholder="Describe your systems and what you need help with..." required></textarea>
+        </div>
+        <button type="submit" class="submit-btn">Send request</button>
+        <p class="form-note">This form is a preview — connect it to your email or ticketing system to go live.</p>
+        <div class="confirm" id="confirmMsg">Request received — a BoostSec specialist will follow up shortly.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <span>BoostSec — security advice, support, and firewall engineering.</span>
+      <a href="#request">Send a security request →</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Simulated console log in the hero terminal
+  const lines = [
+    { text: "$ boostsec scan --target infra", cls: "" },
+    { text: "checking perimeter rules...", cls: "" },
+    { text: "3 open ports flagged for review", cls: "warn" },
+    { text: "firewall ruleset: drafting recommendation", cls: "" },
+    { text: "request #4471 assigned to specialist", cls: "ok" },
+    { text: "status: advice ready", cls: "ok" },
+  ];
+  const body = document.getElementById('termBody');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function typeLine(i){
+    if(i >= lines.length){
+      const caret = document.createElement('span');
+      caret.className = 'caret';
+      body.appendChild(caret);
+      return;
+    }
+    const p = document.createElement('p');
+    p.className = 'line ' + lines[i].cls;
+    body.appendChild(p);
+    const full = lines[i].text;
+    if(reduceMotion)
